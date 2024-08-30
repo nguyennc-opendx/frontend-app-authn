@@ -3,7 +3,9 @@ import {
   REGISTER_CLEAR_USERNAME_SUGGESTIONS,
   REGISTER_FORM_VALIDATIONS,
   REGISTER_NEW_USER,
-  REGISTER_SET_COUNTRY_CODE, REGISTER_SET_USER_PIPELINE_DATA_LOADED,
+  REGISTER_SET_COUNTRY_CODE,
+  REGISTER_SET_EMAIL_SUGGESTIONS,
+  REGISTER_SET_USER_PIPELINE_DATA_LOADED,
   REGISTRATION_CLEAR_BACKEND_ERROR,
 } from './actions';
 import {
@@ -48,7 +50,7 @@ const reducer = (state = defaultState, action = {}) => {
       };
     case BACKUP_REGISTRATION_DATA.BEGIN:
       return {
-        ...defaultState,
+        ...state,
         usernameSuggestions: state.usernameSuggestions,
         registrationFormData: { ...action.payload },
         userPipelineDataLoaded: state.userPipelineDataLoaded,
@@ -119,6 +121,14 @@ const reducer = (state = defaultState, action = {}) => {
         userPipelineDataLoaded: value,
       };
     }
+    case REGISTER_SET_EMAIL_SUGGESTIONS:
+      return {
+        ...state,
+        registrationFormData: {
+          ...state.registrationFormData,
+          emailSuggestion: action.payload.emailSuggestion,
+        },
+      };
     default:
       return {
         ...state,

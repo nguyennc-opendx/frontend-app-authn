@@ -115,6 +115,10 @@ The authentication micro-frontend also requires the following additional variabl
      - Name of MFE, this will be used by the API to get runtime configurations for the specific micro frontend. For a frontend repo `frontend-app-appName`, use `appName` as APP_ID.
      - ``authn`` | ``''``
 
+   * - ``ENABLE_IMAGE_LAYOUT``
+     - Enables the image layout feature within the authn. When set to True, this feature allows the inclusion of images in the base container layout. For more details on configuring this feature, please refer to the `Modifying base container <docs/how_tos/modifying_base_container.rst>`_.
+     - ``true`` | ``''`` (empty strings are falsy)
+
 
 edX-specific Environment Variables
 ==================================
@@ -183,7 +187,7 @@ All community members are expected to follow the `Open edX Code of Conduct <http
 People
 ======
 The assigned maintainers for this component and other project details may be
-found in `Backstage <https://backstage.openedx.org/catalog/default/group/vanguards>`_. Backstage pulls this data from the ``catalog-info.yaml``
+found in `Backstage <https://backstage.openedx.org/catalog/default/group/2u-vanguards>`_. Backstage pulls this data from the ``catalog-info.yaml``
 file in this repo.
 
 Reporting Security Issues

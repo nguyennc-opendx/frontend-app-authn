@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { Alert, Icon } from '@edx/paragon';
-import { Close, Error } from '@edx/paragon/icons';
+import { Alert, Icon } from '@openedx/paragon';
+import { Close, Error } from '@openedx/paragon/icons';
 import PropTypes from 'prop-types';
 
 import validateEmail from './validator';
 import { FormGroup } from '../../../common-components';
 import {
-  backupRegistrationFormBegin,
   clearRegistrationBackendError,
   fetchRealtimeValidations,
+  setEmailSuggestionInStore,
 } from '../../data/actions';
 import messages from '../../messages';
 
@@ -37,12 +37,14 @@ const EmailField = (props) => {
     confirmEmailValue,
   } = props;
 
-  const {
-    registrationFormData: backedUpFormData,
-    validationApiRateLimited,
-  } = useSelector(state => state.register);
+  const backedUpFormData = useSelector(state => state.register.registrationFormData);
+  const validationApiRateLimited = useSelector(state => state.register.validationApiRateLimited);
 
   const [emailSuggestion, setEmailSuggestion] = useState({ ...backedUpFormData?.emailSuggestion });
+
+  useEffect(() => {
+    setEmailSuggestion(backedUpFormData.emailSuggestion);
+  }, [backedUpFormData.emailSuggestion]);
 
   const handleOnBlur = (e) => {
     const { value } = e.target;
@@ -52,10 +54,7 @@ const EmailField = (props) => {
       handleErrorChange('confirm_email', confirmEmailError);
     }
 
-    dispatch(backupRegistrationFormBegin({
-      ...backedUpFormData,
-      emailSuggestion: { ...suggestion },
-    }));
+    dispatch(setEmailSuggestionInStore(suggestion));
     setEmailSuggestion(suggestion);
 
     if (fieldError) {

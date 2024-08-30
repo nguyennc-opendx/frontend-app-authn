@@ -1,7 +1,10 @@
-import { getConfig, snakeCaseObject } from '@edx/frontend-platform';
+import { snakeCaseObject } from '@edx/frontend-platform';
 
 import { LETTER_REGEX, NUMBER_REGEX } from '../../data/constants';
 import messages from '../messages';
+import validateEmail from '../RegistrationFields/EmailField/validator';
+import validateName from '../RegistrationFields/NameField/validator';
+import validateUsername from '../RegistrationFields/UsernameField/validator';
 
 /**
  * It validates the password field value
@@ -35,33 +38,70 @@ export const isFormValid = (
 ) => {
   const fieldErrors = { ...errors };
   let isValid = true;
+  let emailSuggestion = { suggestion: '', type: '' };
+
   Object.keys(payload).forEach(key => {
-    if (!payload[key]) {
-      fieldErrors[key] = formatMessage(messages[`empty.${key}.field.error`]);
+    switch (key) {
+    case 'name':
+      if (!fieldErrors.name) {
+        fieldErrors.name = validateName(payload.name, formatMessage);
+      }
+      if (fieldErrors.name) { isValid = false; }
+      break;
+    case 'email': {
+      if (!fieldErrors.email) {
+        const {
+          fieldError, confirmEmailError, suggestion,
+        } = validateEmail(payload.email, configurableFormFields?.confirm_email, formatMessage);
+        if (fieldError) {
+          fieldErrors.email = fieldError;
+          isValid = false;
+        }
+        if (confirmEmailError) {
+          fieldErrors.confirm_email = confirmEmailError;
+          isValid = false;
+        }
+        emailSuggestion = suggestion;
+      }
+      if (fieldErrors.email) { isValid = false; }
+      break;
     }
-    if (fieldErrors[key]) {
-      isValid = false;
+    case 'username':
+      if (!fieldErrors.username) {
+        fieldErrors.username = validateUsername(payload.username, formatMessage);
+      }
+      if (fieldErrors.username) { isValid = false; }
+      break;
+    case 'password':
+      if (!fieldErrors.password) {
+        fieldErrors.password = validatePasswordField(payload.password, formatMessage);
+      }
+      if (fieldErrors.password) { isValid = false; }
+      break;
+    default:
+      break;
     }
   });
 
-  if (getConfig().SHOW_CONFIGURABLE_EDX_FIELDS) {
-    if (!configurableFormFields?.country?.displayValue) {
-      fieldErrors.country = formatMessage(messages['empty.country.field.error']);
-      isValid = false;
-    }
+  // Don't validate when country field is optional or hidden and not present on registration form
+  if (configurableFormFields?.country && !configurableFormFields.country?.displayValue) {
+    fieldErrors.country = formatMessage(messages['empty.country.field.error']);
+    isValid = false;
+  } else if (configurableFormFields?.country && !configurableFormFields.country?.countryCode) {
+    fieldErrors.country = formatMessage(messages['invalid.country.field.error']);
+    isValid = false;
   }
+
   Object.keys(fieldDescriptions).forEach(key => {
-    if (key === 'country' && !configurableFormFields.country.displayValue) {
+    if (key === 'country' && !configurableFormFields?.country?.displayValue) {
       fieldErrors[key] = formatMessage(messages['empty.country.field.error']);
     } else if (!configurableFormFields[key]) {
       fieldErrors[key] = fieldDescriptions[key].error_message;
     }
-    if (fieldErrors[key]) {
-      isValid = false;
-    }
+    if (fieldErrors[key]) { isValid = false; }
   });
 
-  return { isValid, fieldErrors };
+  return { isValid, fieldErrors, emailSuggestion };
 };
 
 /**
@@ -94,37 +134,10 @@ export const prepareRegistrationPayload = (
     delete payload.marketingEmailsOptIn;
   }
 
-  payload = snakeCaseObject(payload);
   payload.totalRegistrationTime = totalRegistrationTime;
+  payload = snakeCaseObject(payload);
 
   // add query params to the payload
   payload = { ...payload, ...queryParams };
   return payload;
-};
-
-/**
- * A helper for backend validations selector. It processes the api output and generates a
- * key value dict for field errors.
- * @param registrationError
- * @param validations
- * @returns {{username: string}|{name: string}|*|{}|null}
- */
-export const getBackendValidations = (registrationError, validations) => {
-  if (validations) {
-    return validations.validationDecisions;
-  }
-
-  if (Object.keys(registrationError).length > 0) {
-    const fields = Object.keys(registrationError).filter(
-      (fieldName) => !(fieldName in ['errorCode', 'usernameSuggestions']),
-    );
-
-    const validationDecisions = {};
-    fields.forEach(field => {
-      validationDecisions[field] = registrationError[field][0].userMessage || '';
-    });
-    return validationDecisions;
-  }
-
-  return null;
 };

@@ -16,8 +16,8 @@ import {
   Hyperlink,
   Spinner,
   StatefulButton,
-} from '@edx/paragon';
-import { Error } from '@edx/paragon/icons';
+} from '@openedx/paragon';
+import { Error } from '@openedx/paragon/icons';
 import PropTypes from 'prop-types';
 import { Helmet } from 'react-helmet';
 import { useLocation } from 'react-router-dom';
@@ -156,6 +156,7 @@ const ProgressiveProfiling = (props) => {
         isGenderSelected: !!values.gender,
         isYearOfBirthSelected: !!values.year_of_birth,
         isLevelOfEducationSelected: !!values.level_of_education,
+        isWorkExperienceSelected: !!values.work_experience,
         host: queryParams?.host || '',
       },
     );
@@ -195,7 +196,7 @@ const ProgressiveProfiling = (props) => {
   });
 
   return (
-    <BaseContainer showWelcomeBanner username={authenticatedUser?.username}>
+    <BaseContainer showWelcomeBanner fullName={authenticatedUser?.fullName || authenticatedUser?.name}>
       <Helmet>
         <title>{formatMessage(messages['progressive.profiling.page.title'],
           { siteName: getConfig().SITE_NAME })}
@@ -284,6 +285,7 @@ ProgressiveProfiling.propTypes = {
   authenticatedUser: PropTypes.shape({
     username: PropTypes.string,
     userId: PropTypes.number,
+    fullName: PropTypes.string,
   }),
   showError: PropTypes.bool,
   shouldRedirect: PropTypes.bool,

@@ -9,8 +9,8 @@ import {
   Icon,
   Tab,
   Tabs,
-} from '@edx/paragon';
-import { ChevronLeft } from '@edx/paragon/icons';
+} from '@openedx/paragon';
+import { ChevronLeft } from '@openedx/paragon/icons';
 import PropTypes from 'prop-types';
 import { Navigate, useNavigate } from 'react-router-dom';
 
@@ -25,6 +25,7 @@ import {
   getTpaHint, getTpaProvider, updatePathWithQueryParams,
 } from '../data/utils';
 import { LoginPage } from '../login';
+import { backupLoginForm } from '../login/data/actions';
 import { RegistrationPage } from '../register';
 import { backupRegistrationForm } from '../register/data/actions';
 
@@ -65,11 +66,16 @@ const Logistration = (props) => {
     setInstitutionLogin(!institutionLogin);
   };
 
-  const handleOnSelect = (tabKey) => {
+  const handleOnSelect = (tabKey, currentTab) => {
+    if (tabKey === currentTab) {
+      return;
+    }
     sendTrackEvent(`edx.bi.${tabKey.replace('/', '')}_form.toggled`, { category: 'user-engagement' });
     props.clearThirdPartyAuthContextErrorMessage();
     if (tabKey === LOGIN_PAGE) {
       props.backupRegistrationForm();
+    } else if (tabKey === REGISTER_PAGE) {
+      props.backupLoginForm();
     }
     setKey(tabKey);
   };
@@ -118,7 +124,7 @@ const Logistration = (props) => {
                   </Tabs>
                 )
                 : (!isValidTpaHint() && !hideRegistrationLink && (
-                  <Tabs defaultActiveKey={selectedPage} id="controlled-tab" onSelect={handleOnSelect}>
+                  <Tabs defaultActiveKey={selectedPage} id="controlled-tab" onSelect={(tabKey) => handleOnSelect(tabKey, selectedPage)}>
                     <Tab title={formatMessage(messages['logistration.register'])} eventKey={REGISTER_PAGE} />
                     <Tab title={formatMessage(messages['logistration.sign.in'])} eventKey={LOGIN_PAGE} />
                   </Tabs>
@@ -150,6 +156,7 @@ const Logistration = (props) => {
 
 Logistration.propTypes = {
   selectedPage: PropTypes.string,
+  backupLoginForm: PropTypes.func.isRequired,
   backupRegistrationForm: PropTypes.func.isRequired,
   clearThirdPartyAuthContextErrorMessage: PropTypes.func.isRequired,
   tpaProviders: PropTypes.shape({
@@ -176,6 +183,7 @@ const mapStateToProps = state => ({
 export default connect(
   mapStateToProps,
   {
+    backupLoginForm,
     backupRegistrationForm,
     clearThirdPartyAuthContextErrorMessage,
   },
